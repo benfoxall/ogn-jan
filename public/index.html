@@ -17,6 +17,21 @@
 		<link rel="stylesheet" href="css/reveal.min.css">
 		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
 
+		<style type="text/css">
+			.image-panels{
+				display:flex;
+			}
+			.reveal .image-panel{
+				flex-grow:1;
+				margin:.5%;
+			}
+			.image-panel canvas{
+				display:block;
+				margin:auto;
+				max-width: 100%;
+			}
+		</style>
+
 		<!--[if lt IE 9]>
 		<script src="lib/js/html5shiv.js"></script>
 		<![endif]-->
@@ -30,13 +45,15 @@
 					<h1>ping pong</h1>
 				</section>
 
-				<section>
-					<h1>[picture]</h1>
-					<p>*[what we'll cover]*</p>
+				<section data-background="images/ping-pong.jpg">
 				</section>
 
 				<section>
-					<h1>RGB Thresholding</h1>
+					<div class="image-panels stretchx">
+						<div id="r" class="image-panel"></div>
+						<div id="g" class="image-panel"></div>
+						<div id="b" class="image-panel"></div>
+					</div>
 				</section>
 
 				<section>
@@ -104,6 +121,75 @@
 					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
 				]
 			});
+
+
+			// load the image into the visuals
+
+			var image = document.createElement('img');
+			image.addEventListener("load", function() {
+				renderRGB();
+      }, false);
+			image.src = 'images/ping-pong.jpg';
+
+			function renderRGB(){
+
+				// offscreen source canvas
+				var srcCanvas = document.createElement('canvas'),
+						destH = (image.height / image.width)*400;
+				srcCanvas.width = 400;
+				srcCanvas.height = destH;
+
+				var srcCtx = srcCanvas.getContext('2d');
+				srcCtx.drawImage(image, 0,0,srcCanvas.width,srcCanvas.height);
+
+
+				['#r','#g','#b'].forEach(function(selector, idx){
+
+					var canvas = document.createElement('canvas');
+					canvas.width=400; canvas.height=600;
+					ctx = canvas.getContext('2d');
+
+					// uint16 = 0xFFFF
+					var buckets = new Uint16Array(255)
+					
+					var srcImageData = srcCtx.getImageData(0,0,srcCanvas.width,srcCanvas.height);
+					var pixels = srcImageData.data; 
+					for(var i = pixels.length; i > 0; i--){
+						if (i%4 === idx ){
+							buckets[pixels[i]]++
+						} else {
+							// zero, unless alpha value
+							if(i%4 !== 3) pixels[i] = 0;
+						}
+					}
+					ctx.putImageData(srcImageData, 0, 0);
+
+					// draw hist
+					var gap = 400/255;
+
+					ctx.fillStyle = idx == 0 ? '#f00' :
+													idx == 1 ? '#0f0' :
+													idx == 2 ? '#00f' : '#000'
+
+					for (var i = buckets.length - 1; i >= 0; i--) {
+						ctx.fillRect(
+							Math.floor(i*gap), 
+							canvas.height - buckets[i]/10, 
+							Math.ceil(gap), 
+							buckets[i]/10)
+						;
+					};
+
+					document.querySelector(selector).appendChild(canvas);
+
+				})
+
+
+			}
+
+			
+
+			// var canvas = document.createElement('canvas');
 
 		</script>
 
