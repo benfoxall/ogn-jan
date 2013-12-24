@@ -49,11 +49,16 @@
 				</section>
 
 				<section>
-					<div class="image-panels stretchx">
-						<div id="r" class="image-panel"></div>
-						<div id="g" class="image-panel"></div>
-						<div id="b" class="image-panel"></div>
-					</div>
+					<section>
+						<div class="image-panels">
+							<div id="r" class="image-panel"></div>
+							<div id="g" class="image-panel"></div>
+							<div id="b" class="image-panel"></div>
+						</div>
+					</section>
+					<section data-state="rgbslide">
+						<div id="rgb"></div>
+					</section>
 				</section>
 
 				<section>
@@ -131,7 +136,19 @@
       }, false);
 			image.src = 'images/ping-pong.jpg';
 
+			var rgbCanvas, maxes = [], mins = [];
+
+			// MASSIVE CLEANUP PLEASE
+
 			function renderRGB(){
+
+				// onscreen full canvas (next slide)
+				rgbCanvas = document.createElement('canvas'),
+				rgbCanvas.width = image.width;
+				rgbCanvas.height = image.height;
+				rgbCanvas.getContext('2d').drawImage(image,0,0);
+				document.querySelector('#rgb').appendChild(rgbCanvas);
+
 
 				// offscreen source canvas
 				var srcCanvas = document.createElement('canvas'),
@@ -158,7 +175,8 @@
 					
 						var srcImageData = srcCtx.getImageData(0,0,srcCanvas.width,srcCanvas.height);
 						var pixels = srcImageData.data; 
-						var min = Math.min(start, end), max = Math.max(start, end);
+						var min = mins[idx] = Math.min(start, end), 
+								max = maxes[idx] = Math.max(start, end);
 						for(var i = pixels.length; i > 0; i--){
 							if (i%4 === idx ){
 								buckets[pixels[i]]++
@@ -200,10 +218,6 @@
 								canvas.height - destH
 							)
 						}
-
-
-
-
 					}
 
 					draw();
@@ -254,9 +268,31 @@
 
 			}
 
-			
 
-			// var canvas = document.createElement('canvas');
+			Reveal.addEventListener( 'rgbslide', function() {
+
+    		var ctx = rgbCanvas.getContext('2d');
+    				ctx.drawImage(image,0,0);
+
+				var srcImageData = ctx.getImageData(0,0,rgbCanvas.width,rgbCanvas.height);
+				var pixels = srcImageData.data;
+				for(var i = 0; i < pixels.length; i+=4){
+					if( 
+						pixels[i] < maxes[0] && pixels[i] > mins[0] && 
+						pixels[i+1] < maxes[1] && pixels[i] > mins[1] &&
+						pixels[i+2] < maxes[2] && pixels[i] > mins[2]
+					){
+						pixels[i] = pixels[i+1] = pixels[i+2] = 0;
+					} else {
+						pixels[i] = pixels[i+1] = pixels[i+2] = 255;
+					}
+				}
+
+				ctx.putImageData(srcImageData, 0, 0);
+
+			}, false );
+
+		
 
 		</script>
 
