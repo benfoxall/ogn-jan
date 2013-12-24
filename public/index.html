@@ -147,38 +147,105 @@
 
 					var canvas = document.createElement('canvas');
 					canvas.width=400; canvas.height=600;
-					ctx = canvas.getContext('2d');
+					var ctx = canvas.getContext('2d');
 
-					// uint16 = 0xFFFF
-					var buckets = new Uint16Array(255)
 					
-					var srcImageData = srcCtx.getImageData(0,0,srcCanvas.width,srcCanvas.height);
-					var pixels = srcImageData.data; 
-					for(var i = pixels.length; i > 0; i--){
-						if (i%4 === idx ){
-							buckets[pixels[i]]++
-						} else {
-							// zero, unless alpha value
-							if(i%4 !== 3) pixels[i] = 0;
+					var started = false, start, end;
+					
+					function draw(){
+						// uint16 = 0xFFFF
+						var buckets = new Uint16Array(255)
+					
+						var srcImageData = srcCtx.getImageData(0,0,srcCanvas.width,srcCanvas.height);
+						var pixels = srcImageData.data; 
+						var min = Math.min(start, end), max = Math.max(start, end);
+						for(var i = pixels.length; i > 0; i--){
+							if (i%4 === idx ){
+								buckets[pixels[i]]++
+								if(start){
+									pixels[i] = (pixels[i] > min && pixels[i] < max) ? 255: 0
+								} 
+							} else {
+								// zero, unless alpha value
+								if(i%4 !== 3) pixels[i] = 0;
+							}
 						}
+						ctx.putImageData(srcImageData, 0, 0);
+
+						ctx.clearRect(0, destH, canvas.width, canvas.height - destH)
+
+						// draw hist
+						// 50px padding
+						var gap = 300/255;
+
+						ctx.fillStyle = idx == 0 ? '#f00' :
+														idx == 1 ? '#0f0' :
+														idx == 2 ? '#00f' : '#000'
+
+						for (var i = buckets.length - 1; i >= 0; i--) {
+							ctx.fillRect(
+								Math.floor(i*gap) + 50, 
+								canvas.height - buckets[i]/10, 
+								Math.ceil(gap), 
+								buckets[i]/10)
+							;
+						};
+
+						ctx.fillStyle = 'rgba(0,0,0,0.4)'
+						if(start){
+							ctx.fillRect(
+								((start/255)*300) + 50,
+								destH,
+								((end/255)*300) - ((start/255)*300),
+								canvas.height - destH
+							)
+						}
+
+
+
+
 					}
-					ctx.putImageData(srcImageData, 0, 0);
 
-					// draw hist
-					var gap = 400/255;
+					draw();
 
-					ctx.fillStyle = idx == 0 ? '#f00' :
-													idx == 1 ? '#0f0' :
-													idx == 2 ? '#00f' : '#000'
 
-					for (var i = buckets.length - 1; i >= 0; i--) {
-						ctx.fillRect(
-							Math.floor(i*gap), 
-							canvas.height - buckets[i]/10, 
-							Math.ceil(gap), 
-							buckets[i]/10)
-						;
-					};
+					var slidestyle = document.querySelector('.slides').style;
+
+
+					canvas.addEventListener("mousedown", function(e) {
+						started = true;
+						start = ((400/300)*255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth)-50;
+						end = start;
+						draw();
+						e.preventDefault();
+					});
+					canvas.addEventListener("mouseup", function(e) {
+						started = false;
+						end = ((400/300)*255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth)-50;
+						if(start == end) start = end = null;
+						draw();
+						e.preventDefault();
+					});
+					canvas.addEventListener("mouseleave", function(e) {
+						started = false;
+						end = ((400/300)*255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth)-50;
+						if(start == end) start = end = null;
+						e.preventDefault();
+					});
+
+
+					canvas.addEventListener("mousemove", function(e) {
+						// console.log(e);
+
+						// 0 -> 1 
+						if(started){
+							end = ((400/300)*255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth)-50;
+							draw();
+							// console.log(255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth);
+						}
+							
+
+					});
 
 					document.querySelector(selector).appendChild(canvas);
 
