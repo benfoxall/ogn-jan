@@ -128,36 +128,48 @@
 			});
 
 
+			// return a canvas with an image drawn to it
+			function imageCanvas(image, width, height){
+				var canvas = document.createElement('canvas');
+
+				canvas.width  = width  || image.width;
+				canvas.height = height || image.height;
+
+				canvas.getContext('2d').drawImage(image, 0, 0, canvas.width,canvas.height);
+
+				return canvas;
+			}
+
+			// add histX to an event before passing on to the handler
+			function histX(canvas, fn){
+				var slidestyle = document.querySelector('.slides').style;
+				return function(e){
+					e.histX = ((400/300)*255*(e.offsetX / slidestyle.zoom)/canvas.offsetWidth)-50;
+					fn.apply(this, arguments);
+				}
+			}
+
 			// load the image into the visuals
 
 			var image = document.createElement('img');
-			image.addEventListener("load", function() {
-				renderRGB();
-      }, false);
+			image.addEventListener("load", setup, false);
 			image.src = 'images/ping-pong.jpg';
 
 			var rgbCanvas, maxes = [], mins = [];
 
 			// MASSIVE CLEANUP PLEASE
 
-			function renderRGB(){
+			function setup(){
 
-				// onscreen full canvas (next slide)
-				rgbCanvas = document.createElement('canvas'),
-				rgbCanvas.width = image.width;
-				rgbCanvas.height = image.height;
-				rgbCanvas.getContext('2d').drawImage(image,0,0);
+				// onscreen full size canvas (next slide)
+				rgbCanvas = imageCanvas(image);
 				document.querySelector('#rgb').appendChild(rgbCanvas);
 
 
-				// offscreen source canvas
-				var srcCanvas = document.createElement('canvas'),
-						destH = (image.height / image.width)*400;
-				srcCanvas.width = 400;
-				srcCanvas.height = destH;
-
+				// offscreen source canvas (scaled to width 400)
+				var destH = (image.height / image.width)*400;
+				var srcCanvas = imageCanvas(image, 400, destH);
 				var srcCtx = srcCanvas.getContext('2d');
-				srcCtx.drawImage(image, 0,0,srcCanvas.width,srcCanvas.height);
 
 
 				['#r','#g','#b'].forEach(function(selector, idx){
@@ -222,50 +234,45 @@
 
 					draw();
 
-
-					var slidestyle = document.querySelector('.slides').style;
-
-
-					canvas.addEventListener("mousedown", function(e) {
+					canvas.addEventListener("mousedown", histX(canvas, function(e) {
 						started = true;
-						start = ((400/300)*255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth)-50;
+						start = e.histX;
+						console.log(e);
 						end = start;
 						draw();
 						e.preventDefault();
-					});
-					canvas.addEventListener("mouseup", function(e) {
+					}));
+					canvas.addEventListener("mouseup", histX(canvas, function(e) {
 						started = false;
-						end = ((400/300)*255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth)-50;
+						end = e.histX;
 						if(start == end) start = end = null;
 						draw();
 						e.preventDefault();
-					});
-					canvas.addEventListener("mouseleave", function(e) {
+					}));
+					canvas.addEventListener("mouseleave", histX(canvas, function(e) {
 						started = false;
-						end = ((400/300)*255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth)-50;
+						end = e.histX;
 						if(start == end) start = end = null;
 						e.preventDefault();
-					});
+					}));
 
 
-					canvas.addEventListener("mousemove", function(e) {
+					canvas.addEventListener("mousemove", histX(canvas, function(e) {
 						// console.log(e);
 
 						// 0 -> 1 
 						if(started){
-							end = ((400/300)*255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth)-50;
+							end = e.histX;
 							draw();
 							// console.log(255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth);
 						}
 							
 
-					});
+					}));
 
 					document.querySelector(selector).appendChild(canvas);
 
 				})
-
-
 			}
 
 
