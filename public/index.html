@@ -60,19 +60,27 @@
 						<div id="rgb"></div>
 					</section>
 				</section>
-
 				<section>
-					<h1>[picture]</h1>
-					<p>*[when this doesn't work]*</p>
+					<section>
+						<h1>[RGB cube]</h1>
+						<p>*orange plotted*</p>				
+					</section>
+					<section>
+						<h1>[HSV cube]</h1>
+						<p>*orange plotted*</p>				
+					</section>
 				</section>
 
 				<section>
 					<section>
-						<h1>RGB -> HSL</h1>
+						<div class="image-panels">
+							<div id="h" class="image-panel"></div>
+							<div id="s" class="image-panel"></div>
+							<div id="v" class="image-panel"></div>
+						</div>
 					</section>
-					<section>
-						<h1>[why this works better]</h1>
-						<p>[3d plot?]</p>
+					<section data-state="hsvslide">
+						<div id="hsv"></div>
 					</section>
 				</section>
 
@@ -155,15 +163,18 @@
 			image.addEventListener("load", setup, false);
 			image.src = 'images/ping-pong.jpg';
 
-			var rgbCanvas, maxes = [], mins = [];
+			var rgbCanvas, hsvCanvas, maxes = [], mins = [];
 
 			// MASSIVE CLEANUP PLEASE
 
 			function setup(){
 
-				// onscreen full size canvas (next slide)
+				// onscreen full size canvases
 				rgbCanvas = imageCanvas(image);
 				document.querySelector('#rgb').appendChild(rgbCanvas);
+
+				hsvCanvas = imageCanvas(image);
+				document.querySelector('#hsv').appendChild(hsvCanvas);
 
 
 				// offscreen source canvas (scaled to width 400)
@@ -204,6 +215,30 @@
 					function(minmax){threshes.b = minmax },
 					'#00f'
 				));
+
+
+				//rgb_to_hsv
+				document.querySelector('#h').appendChild(histCanvas(
+					srcCanvas,
+					function(r,g,b,a){return rgb_to_hsv(r,g,b)[0]},
+					function(value){return [value,value,value,255]},
+					function(minmax){threshes.h = minmax },
+					'#08f'
+				));
+				document.querySelector('#s').appendChild(histCanvas(
+					srcCanvas,
+					function(r,g,b,a){return rgb_to_hsv(r,g,b)[1]},
+					function(value){return [value,value,value,255]},
+					function(minmax){threshes.s = minmax },
+					'#08f'
+				));
+				document.querySelector('#v').appendChild(histCanvas(
+					srcCanvas,
+					function(r,g,b,a){return rgb_to_hsv(r,g,b)[2]},
+					function(value){return [value,value,value,255]},
+					function(minmax){threshes.v = minmax },
+					'#08f'
+				));
 			}
 
 
@@ -225,7 +260,7 @@
 
 					for(var i = 0; i < pixels.length; i+=4){
 						var val = mapfn(pixels[i], pixels[i+1], pixels[i+2], pixels[i+3]);
-						buckets[val]++;
+						buckets[Math.floor(val)]++;
 						if(min){
 							val = val > min && val < max ? 255 : 0;
 						}
@@ -242,19 +277,21 @@
 
 
 					// draw hist
-					ctx.clearRect(0, destH, canvas.width, canvas.height - destH)
+					ctx.clearRect(0, destH, canvas.width, canvas.height - destH);
+
 
 					// 50px padding
-					var gap = 300/255;
+					var gap = 300/255,
+							scale = 300 / Math.max.apply(Math, buckets);
 
 					ctx.fillStyle = color
 
 					for (var i = buckets.length - 1; i >= 0; i--) {
 						ctx.fillRect(
 							Math.floor(i*gap) + 50, 
-							canvas.height - buckets[i]/10, 
+							canvas.height - (buckets[i]*scale), 
 							Math.ceil(gap), 
-							buckets[i]/10)
+							(buckets[i]*scale))
 						;
 					};
 
@@ -309,8 +346,9 @@
 			Reveal.addEventListener( 'rgbslide', function() {
 
     		var ctx = rgbCanvas.getContext('2d');
-    				ctx.drawImage(image,0,0),
-    				mins = [
+    				ctx.drawImage(image,0,0);
+
+    		var mins = [
 							threshes.r[0],
 							threshes.g[0],
 							threshes.b[0]
@@ -321,15 +359,14 @@
 							threshes.b[1]
 						];
 
-
-
+					console.log(mins, maxes);
 				var srcImageData = ctx.getImageData(0,0,rgbCanvas.width,rgbCanvas.height);
 				var pixels = srcImageData.data;
 				for(var i = 0; i < pixels.length; i+=4){
 					if( 
 						pixels[i] < maxes[0] && pixels[i] > mins[0] && 
-						pixels[i+1] < maxes[1] && pixels[i] > mins[1] &&
-						pixels[i+2] < maxes[2] && pixels[i] > mins[2]
+						pixels[i+1] < maxes[1] && pixels[i+1] > mins[1] &&
+						pixels[i+2] < maxes[2] && pixels[i+2] > mins[2]
 					){
 						pixels[i] = pixels[i+1] = pixels[i+2] = 0;
 					} else {
@@ -341,7 +378,86 @@
 
 			}, false );
 
-		
+
+			Reveal.addEventListener( 'hsvslide', function() {
+				console.log("HSV SLID")
+
+    		var ctx = hsvCanvas.getContext('2d');
+    				ctx.drawImage(image,0,0);
+
+				var mins = [
+							threshes.h[0],
+							threshes.s[0],
+							threshes.v[0]
+						],
+    				maxes = [
+							threshes.h[1],
+							threshes.s[1],
+							threshes.v[1]
+						];
+
+				var srcImageData = ctx.getImageData(0,0,hsvCanvas.width,hsvCanvas.height);
+				var pixels = srcImageData.data;
+				for(var i = 0; i < pixels.length; i+=4){
+
+					var hsv = rgb_to_hsv(pixels[i],pixels[i+1],pixels[i+2]);
+					if( 
+						hsv[0] < maxes[0] && hsv[0] > mins[0] && 
+						hsv[1] < maxes[1] && hsv[1] > mins[1] && 
+						hsv[2] < maxes[2] && hsv[2] > mins[2] 
+					){
+						pixels[i] = pixels[i+1] = pixels[i+2] = 0;
+					} else {
+						pixels[i] = pixels[i+1] = pixels[i+2] = 255;
+					}
+				}
+				ctx.putImageData(srcImageData, 0, 0);
+			}, false );
+
+
+
+			
+
+function rgb_to_hsv(r,g,b){
+  var h, s, v, cmax, cmin, delta;
+
+  // Cmax = max(R', G', B')
+  // Cmin = min(R', G', B')
+  cmax = Math.max(r,g,b);
+  cmin = Math.min(r,g,b);
+
+  // console.log(cmax, cmin)
+
+  // Î” = Cmax - Cmin
+  delta = cmax - cmin;
+
+  // Hue calculation:
+  if(cmax == r){
+    h = 60 * (((g - b) / delta) % 6)
+  } else if(cmax == g){
+    h = 60 * (((b - r) / delta) + 2)
+  } else if(cmax == b){
+    h = 60 * (((r - g) / delta) + 4)
+  }
+
+  // Saturation calculation:
+
+  if(delta == 0){
+    s = 0;
+  } else {
+    s = (delta*255)/cmax;
+  }
+
+  // Value calculation:
+  // V = Cmax
+  v = cmax;
+
+  // convert to 0 -> 255
+  h = (((h || 0)+360) % 360 ) / 1.411764
+
+  return [h,s,v];
+}
+
 
 		</script>
 
