@@ -172,114 +172,156 @@
 				var srcCtx = srcCanvas.getContext('2d');
 
 
-				['#r','#g','#b'].forEach(function(selector, idx){
+				threshes = {};
+				document.querySelector('#r').appendChild(histCanvas(
+					srcCanvas,
+					function(r,g,b,a){
+						// return hisogram value 0 -> 255,
+						return r;
+					},
+					function(value){
+						// update the pixels based on a value
+						return [value,0,0,255]
+					},
+					function(minmax){
+						// update the thresholds 
+						threshes.r = minmax;
+					},
+					'#f00'
+				));
 
-					var canvas = document.createElement('canvas');
-					canvas.width=400; canvas.height=600;
-					var ctx = canvas.getContext('2d');
-
-					
-					var started = false, start, end;
-					
-					function draw(){
-						// uint16 = 0xFFFF
-						var buckets = new Uint16Array(255)
-					
-						var srcImageData = srcCtx.getImageData(0,0,srcCanvas.width,srcCanvas.height);
-						var pixels = srcImageData.data; 
-						var min = mins[idx] = Math.min(start, end), 
-								max = maxes[idx] = Math.max(start, end);
-						for(var i = pixels.length; i > 0; i--){
-							if (i%4 === idx ){
-								buckets[pixels[i]]++
-								if(start){
-									pixels[i] = (pixels[i] > min && pixels[i] < max) ? 255: 0
-								} 
-							} else {
-								// zero, unless alpha value
-								if(i%4 !== 3) pixels[i] = 0;
-							}
-						}
-						ctx.putImageData(srcImageData, 0, 0);
-
-						ctx.clearRect(0, destH, canvas.width, canvas.height - destH)
-
-						// draw hist
-						// 50px padding
-						var gap = 300/255;
-
-						ctx.fillStyle = idx == 0 ? '#f00' :
-														idx == 1 ? '#0f0' :
-														idx == 2 ? '#00f' : '#000'
-
-						for (var i = buckets.length - 1; i >= 0; i--) {
-							ctx.fillRect(
-								Math.floor(i*gap) + 50, 
-								canvas.height - buckets[i]/10, 
-								Math.ceil(gap), 
-								buckets[i]/10)
-							;
-						};
-
-						ctx.fillStyle = 'rgba(0,0,0,0.4)'
-						if(start){
-							ctx.fillRect(
-								((start/255)*300) + 50,
-								destH,
-								((end/255)*300) - ((start/255)*300),
-								canvas.height - destH
-							)
-						}
-					}
-
-					draw();
-
-					canvas.addEventListener("mousedown", histX(canvas, function(e) {
-						started = true;
-						start = e.histX;
-						console.log(e);
-						end = start;
-						draw();
-						e.preventDefault();
-					}));
-					canvas.addEventListener("mouseup", histX(canvas, function(e) {
-						started = false;
-						end = e.histX;
-						if(start == end) start = end = null;
-						draw();
-						e.preventDefault();
-					}));
-					canvas.addEventListener("mouseleave", histX(canvas, function(e) {
-						started = false;
-						end = e.histX;
-						if(start == end) start = end = null;
-						e.preventDefault();
-					}));
-
-
-					canvas.addEventListener("mousemove", histX(canvas, function(e) {
-						// console.log(e);
-
-						// 0 -> 1 
-						if(started){
-							end = e.histX;
-							draw();
-							// console.log(255*(e.layerX / slidestyle.zoom)/canvas.offsetWidth);
-						}
-							
-
-					}));
-
-					document.querySelector(selector).appendChild(canvas);
-
-				})
+				document.querySelector('#g').appendChild(histCanvas(
+					srcCanvas,
+					function(r,g,b,a){return g;},
+					function(value){return [0,value,0,255]},
+					function(minmax){threshes.g = minmax },
+					'#0f0'
+				));
+				document.querySelector('#b').appendChild(histCanvas(
+					srcCanvas,
+					function(r,g,b,a){return b;},
+					function(value){return [0,0,value,255]},
+					function(minmax){threshes.b = minmax },
+					'#00f'
+				));
 			}
+
+
+			function histCanvas(src_canvas, mapfn, draw_fn, thresh_cb, color){
+				var canvas = document.createElement('canvas'),
+						ctx = (canvas.width = 400, canvas.height = 600 ,canvas.getContext('2d')),
+						destH = src_canvas.height,
+						started = false, start, end;
+				
+				function draw(){
+					var buckets = new Uint16Array(255)
+				
+					var srcImageData = src_canvas.getContext('2d').getImageData(0,0,src_canvas.width,destH);
+					var pixels = srcImageData.data; 
+					var min = Math.min(start, end), 
+							max = Math.max(start, end);
+
+					thresh_cb([min,max])
+
+					for(var i = 0; i < pixels.length; i+=4){
+						var val = mapfn(pixels[i], pixels[i+1], pixels[i+2], pixels[i+3]);
+						buckets[val]++;
+						if(min){
+							val = val > min && val < max ? 255 : 0;
+						}
+
+						// possibly nicer way to do this
+						var pxs     = draw_fn(val);
+						pixels[i]   = pxs[0];
+						pixels[i+1] = pxs[1];
+						pixels[i+2] = pxs[2];
+						pixels[i+3] = pxs[3];
+
+					}
+					ctx.putImageData(srcImageData, 0, 0);
+
+
+					// draw hist
+					ctx.clearRect(0, destH, canvas.width, canvas.height - destH)
+
+					// 50px padding
+					var gap = 300/255;
+
+					ctx.fillStyle = color
+
+					for (var i = buckets.length - 1; i >= 0; i--) {
+						ctx.fillRect(
+							Math.floor(i*gap) + 50, 
+							canvas.height - buckets[i]/10, 
+							Math.ceil(gap), 
+							buckets[i]/10)
+						;
+					};
+
+					ctx.fillStyle = 'rgba(0,0,0,0.4)'
+					if(min){
+						ctx.fillRect(
+							((min/255)*300) + 50,
+							destH,
+							((max/255)*300) - ((min/255)*300),
+							canvas.height - destH
+						)
+					}
+				}
+
+				draw();
+
+				// hacky
+
+				canvas.addEventListener("mousedown", histX(canvas, function(e) {
+					started = true;
+					end = start = e.histX;
+					draw();
+					e.preventDefault();
+				}));
+				canvas.addEventListener("mouseup", histX(canvas, function(e) {
+					started = false;
+					end = e.histX;
+					if(start == end) start = end = null;
+					draw();
+					e.preventDefault();
+				}));
+				canvas.addEventListener("mouseleave", histX(canvas, function(e) {
+					if(started) end = e.histX;
+					if(start == end) start = end = null;
+					started = false;
+					draw();
+					e.preventDefault();
+				}));
+				canvas.addEventListener("mousemove", histX(canvas, function(e) {
+					if(started){
+						end = e.histX;
+						draw();
+					}
+				}));
+
+
+				return canvas;
+			}
+
 
 
 			Reveal.addEventListener( 'rgbslide', function() {
 
     		var ctx = rgbCanvas.getContext('2d');
-    				ctx.drawImage(image,0,0);
+    				ctx.drawImage(image,0,0),
+    				mins = [
+							threshes.r[0],
+							threshes.g[0],
+							threshes.b[0]
+						],
+    				maxes = [
+							threshes.r[1],
+							threshes.g[1],
+							threshes.b[1]
+						];
+
+
 
 				var srcImageData = ctx.getImageData(0,0,rgbCanvas.width,rgbCanvas.height);
 				var pixels = srcImageData.data;
