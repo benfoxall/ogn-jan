@@ -4,10 +4,10 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>reveal.js - The HTML Presentation Framework</title>
+		<title>Ping Pong - reveal.js presentation</title>
 
-		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
-		<meta name="author" content="Hakim El Hattab">
+		<meta name="description" content="Image recognition with get user media">
+		<meta name="author" content="Ben Foxall">
 
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -60,6 +60,7 @@
 						<div id="rgb"></div>
 					</section>
 				</section>
+
 				<section>
 					<section>
 						<h1>[RGB cube]</h1>
@@ -85,15 +86,15 @@
 				</section>
 
 				<section>
-					<h1>[LETS DO THIS]</h1>
-				</section>
-
-				<section>
-					<h1>[DRAW PICTURE]</h1>
-				</section>
-
-				<section>
-					<h1>[CONTROL STUFF - 3d plot?!]</h1>
+					<section>
+						<h1>The part that might not work</h1>
+					</section>
+					<section data-state="gum">
+						<div id="gum"></div>
+						<div class="fragment" data-fragment-state="calibrated">calibrated</div>
+						<div class="fragment" data-fragment-state="draw">draw</div>
+						<div class="fragment" data-fragment-state="move">move</div>
+					</section>
 				</section>
 
 				<section>
@@ -113,6 +114,7 @@
 
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.min.js"></script>
+		<script src="lib/js/vr.js"></script>
 
 		<script>
 
@@ -379,6 +381,16 @@
 			}, false );
 
 
+var fragmentStates = {};
+
+Reveal.addEventListener( 'fragmentshown', function( event ) {
+	var fragment = event.fragment,
+			state = fragment.getAttribute('data-fragment-state');
+
+	if(state && fragmentStates[state]) fragmentStates[state]();
+});
+
+
 			Reveal.addEventListener( 'hsvslide', function() {
 				console.log("HSV SLID")
 
@@ -413,6 +425,104 @@
 				}
 				ctx.putImageData(srcImageData, 0, 0);
 			}, false );
+
+			var recog, priorpoint, drawfn;
+
+			Reveal.addEventListener( 'gum', function() {
+
+				if(!recog){
+
+					(recog = new VideoRecognition({worker:'lib/js/vr-worker.js'}))
+						.getUserMedia()
+						.attachTo('#gum')
+						.on('video-ready', Reveal.layout)
+						.on('point', function(x, y){
+							// console.log("point>>", x, y)
+							if(x && y){
+								drawfn([x,y], priorpoint)
+								// recog.pctx.fillStyle = '#08f';
+								// recog.pctx.fillRect(x-5,y-5,10,10);
+								priorpoint = [x,y]
+							} else {
+								priorpoint = null;
+							}
+						})
+
+				}
+
+				drawfn = function(current, prior){
+					with(recog.pctx){
+						clearRect(0,0,recog.canvas.width,recog.canvas.height);
+
+						strokeStyle = '#08f'
+						lineWidth = 10
+						beginPath();
+						moveTo(current[0] - 20,current[1] - 20);
+						lineTo(current[0] + 20,current[1] + 20);
+
+						moveTo(current[0] - 20,current[1] + 20);
+						lineTo(current[0] + 20,current[1] - 20);
+
+						stroke();						
+					}
+				}
+
+				
+				// .calibrate()
+				// .start();
+				// .destroy();
+
+
+			});
+
+			// celled when the calibrated fragment is shown
+			fragmentStates.calibrated = function(){
+				recog.calibrated();
+				recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
+			}
+
+			fragmentStates.draw = function(){
+				recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
+
+				recog.pctx.fillStyle = 'rgba(255,255,255,0.7)';
+				recog.pctx.fillRect(0,0,recog.canvas.width,recog.canvas.height);
+
+				drawfn = function(current, prior){
+					with(recog.pctx){
+
+						strokeStyle = '#08f'
+						lineWidth = 2;
+
+						strokeRect(current[0]-3,current[1]-3, 6,6)
+
+						if(prior){
+							beginPath();
+							moveTo(prior[0],prior[1]);
+							lineTo(current[0],current[1]);
+							stroke();
+						}
+												
+					}
+				}
+			}
+
+			fragmentStates.move = function(){
+				recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
+
+				
+
+				drawfn = function(current, prior){
+						// scale the current down to -90 -> +90
+
+						var x = ((current[0] / recog.canvas.width) * 180) - 90;
+						var y = ((current[1] / recog.canvas.height) * 180) - 90;
+
+						recog.canvas.style.webkitTransform = 'rotateY('+(x*-1)+'deg) rotateX('+y+'deg)';
+				}
+
+				// recog.calibrated();
+				// recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
+			}
 
 
 
