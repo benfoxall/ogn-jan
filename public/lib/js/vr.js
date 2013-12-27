@@ -71,7 +71,8 @@
   }
 
   VideoRecognition.prototype._render = function(){
-    requestAnimationFrame(this._render.bind(this));
+    if(this._process_action !== 'finish')
+      requestAnimationFrame(this._render.bind(this));
 
     this.ctx.drawImage(this.video, 0, 0);
 
@@ -264,14 +265,11 @@
     return this;
   }
 
-  VideoRecognition.prototype.start = function(){
-    console.error('unimplemented - start');
-    return this;
-  }
-
   VideoRecognition.prototype.destroy = function(){
-    this._process_action = 'none';
-    self.mediaStream.stop();
+    this._process_action = 'finish';
+    this.mediaStream.stop();
+    this.video.remove()
+    this.canvas.remove()
     return this;
   }
 

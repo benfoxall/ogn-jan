@@ -16,6 +16,7 @@
 
 		<link rel="stylesheet" href="css/reveal.min.css">
 		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+		<link rel="stylesheet" href="lib/css/zenburn.css" id="theme">
 
 		<style type="text/css">
 			.image-panels{
@@ -29,6 +30,13 @@
 				display:block;
 				margin:auto;
 				max-width: 100%;
+			}
+			.reveal section img{
+				border:none;
+				box-shadow: none;
+			}
+			.reveal section code{
+				padding:1em;
 			}
 		</style>
 
@@ -91,23 +99,64 @@
 					</section>
 					<section data-state="gum">
 						<div id="gum"></div>
-						<div class="fragment" data-fragment-state="calibrated">calibrated</div>
-						<div class="fragment" data-fragment-state="draw">draw</div>
-						<div class="fragment" data-fragment-state="move">move</div>
+						<div class="fragment" data-fragment-state="calibrated"></div>
+						<div class="fragment" data-fragment-state="draw"></div>
+						<div class="fragment" data-fragment-state="move"></div>
+						<div class="fragment" data-fragment-state="finish"></div>
 					</section>
 				</section>
 
 				<section>
-					<h1>[CHRISTMAS PARTY]</h1>
+					<section data-background="#222">
+						<img src="images/pictionary-logo.png" />
+					</section>
+
+					<section data-background="#222">
+						<h1>[side photo]</h1>
+					</section>
+
+					<section data-background="images/pictionary.png">
+					</section>
 				</section>
 
 				<section>
-					<h1>[HERE'S A BLOG POST &amp; REPO]</h1>
-					<p>I've got PING PONG BALLS</p>
+					<section>
+						<h2>have a hack</h2>
+
+	  				<p><a href="https://github.com/whiteoctober/TBC">https://github.com/whiteoctober/TBC</a></p>
+
+						<pre><code data-trim>
+var vRec = new VideoRecognition({worker:'lib/js/vr-worker.js'})
+vRec.getUserMedia()
+    .attach('body')
+    .on('point', function(x,y){
+    	// do something awesome!!
+    });
+
+// click #mybutton to calibrate
+mybutton.onclick = vRec.calibrated;
+	  				</code></pre>
+
+	  			</section>
+					<section>
+						<h1>blog post</h1>
+					</section>
+				</section>
+
+
+				<section>
+					<h1>I'VE GOT PING PONG BALLS</h1>
 				</section>
 
 				<section>
-					<h1>[JSOxford!!!!!]</h1>
+					<h1>White October</h1>
+					<h1>JSOxford</h1>
+				</section>
+
+				<section>
+					<h1>Ben Foxall</h1>
+					<h2>@benjaminbenben</h2>
+					<h3>benjaminbenben.com</h3>
 				</section>
 
 		</div>
@@ -133,7 +182,8 @@
 				dependencies: [
 					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
 					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
 				]
 			});
 
@@ -522,6 +572,10 @@ Reveal.addEventListener( 'fragmentshown', function( event ) {
 
 				// recog.calibrated();
 				// recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
+			}
+
+			fragmentStates.finish = function(){
+				recog.destroy();
 			}
 
 
