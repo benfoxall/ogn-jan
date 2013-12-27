@@ -190,6 +190,8 @@ function recognise(data){
     ybucket[i] = 0;
   };
 
+  var totalx = 0, totaly = 0, countx = 0, county = 0;
+
   var x, y, i, r, g, b, h, s, v, cmax, cmin, delta, inbound;
   for (var x = image.width - 1; x >= 0; x--) {
     for (var y = image.height - 1; y >= 0; y--) {
@@ -237,6 +239,8 @@ function recognise(data){
           && v > minv && v < maxv){
           xbucket[x] ++;
           ybucket[y] ++;
+
+          totalx += x; totaly += y; countx++; county++;
         }
     }
   }
@@ -280,6 +284,11 @@ function recognise(data){
   var cy = (bb.top + bb.bottom)/2;
 
 
+
+  var altx = totalx / countx;
+  var alty = totaly / county;
+
+
   // alter by bounds if defined
   var bounds = data.bounds;
   if(bounds){
@@ -290,12 +299,16 @@ function recognise(data){
 
     cx += bounds.left
     cy += bounds.top
+
+    altx += bounds.left
+    alty += bounds.top
   }
 
   postMessage({
     type:'recognise',
     box: bb,
-    xy: [cx,cy]
+    // xy: [cx,cy]
+    xy: [altx,alty]
   })
 }
 
