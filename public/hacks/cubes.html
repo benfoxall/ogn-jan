@@ -5,10 +5,11 @@
   </head>
   <body>
     <script src="three.js"></script>
+    <script src="tween.js"></script>
     <script>
 
 var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+var camera = new THREE.PerspectiveCamera( 25, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 var renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -18,13 +19,9 @@ document.body.appendChild( renderer.domElement );
 var group = new THREE.Object3D();
 
 
-var geometry = new THREE.CubeGeometry(1,1,1,3,3,3);
-var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x000000, opacity: 0.04} );
-material.transparent = true;
-var cube = new THREE.Mesh( geometry, material );
-group.add( cube );
-
-camera.position.z = 5;
+camera.position.z = 10;
+camera.lookAt({x:0,y:0,z:0})
+// camera.position.y = -0.5
 
 
 
@@ -35,7 +32,7 @@ function ball(color){
 
 
   var geometry2 = new THREE.SphereGeometry(.05,10,10)
-  var material = new THREE.MeshBasicMaterial( { wireframe: false, color: color, opacity: 0.2} );
+  var material = new THREE.MeshBasicMaterial( { wireframe: true, color: color, opacity: 0.2} );
   var sphere = new THREE.Mesh( geometry2, material );
   sphere.position.x = (r / 255) - 0.5;
   sphere.position.y = (g / 255) - 0.5;
@@ -45,16 +42,10 @@ function ball(color){
 
 
 ball(0x000000);
-ball(0xffffff);
 
 ball(0x0000ff);
 ball(0x00ff00);
 ball(0xff0000);
-
-ball(0x00ffff);
-ball(0xffff00);
-ball(0xff00ff);
-
 
 function interpolate(color1, color2, num){
 
@@ -76,7 +67,7 @@ function interpolate(color1, color2, num){
 }
 
 
-interpolate(0x2E2380,0x877BD6 ,6).forEach(ball);
+
 
 
 scene.add(group)
@@ -88,15 +79,109 @@ group.rotation.y = -0.5;
 
 renderer.render(scene, camera);
 
+var stop = false, rotateby = 0;
+
 function render() {
-  requestAnimationFrame(render);
+  if(!stop) requestAnimationFrame(render);
   renderer.render(scene, camera);
 
-  // group.rotation.x += 0.01;
   // group.rotation.y += 0.01;
+  // group.rotation.z += rotateby;
+  // group.rotation.z += rotateby;
+  group.rotation.z += rotateby;
+  // cylinder.rotation.z += 0.0
+  // console.log(cylinder.rotation.z)
+  TWEEN.update();
 
 }
-// render();
+render();
+
+
+var cube;
+function draw_white(){
+  ball(0xffffff);
+
+  var geometry = new THREE.CubeGeometry(1,1,1,3,3,3);
+  var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x000000, opacity: 0.04} );
+  material.transparent = true;
+  cube = new THREE.Mesh( geometry, material );
+  group.add( cube );
+}
+
+function draw_cyk(){
+
+  ball(0x00ffff);
+  ball(0xffff00);
+  ball(0xff00ff);
+
+}
+
+function draw_bluegrad(){
+  interpolate(0x2E2380,0x877BD6 ,6).forEach(ball);
+}
+
+var position = { x: group.rotation.x, y: group.rotation.y };
+var target = { x: -Math.PI/4 + 0.2, y: (-Math.PI/4) };
+var tween = new TWEEN.Tween(position).to(target, 1000);
+tween.easing(TWEEN.Easing.Quartic.InOut)
+tween.onUpdate(function(){
+  group.rotation.x = position.x
+  group.rotation.y = position.y
+});
+
+function draw_rotate(){
+  tween.start()
+}
+
+function draw_cylinder(){
+
+  var hsl = new THREE.CylinderGeometry(Math.sqrt(3)/2, Math.sqrt(3)/2, Math.sqrt(3), 40, 3, false);
+
+  var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x000000, opacity: 0.04} );
+  material.transparent = true;
+  var cylinder = new THREE.Mesh( hsl, material );
+
+  cylinder.rotation.x = Math.PI/4
+  cylinder.rotation.z = 2.55;
+
+  group.add( cylinder );
+
+  cube.visible = false
+
+  // rotateby = 0.005;
+
+}
+
+
+
+
+
+
+function draw_rotate(){
+  tween.start()
+}
+
+
+function draw_by_hue(){
+  var hue_position = { x: group.rotation.x };
+  var hue_target = { x: 0.62 };
+  var tween = new TWEEN.Tween(hue_position).to(hue_target, 1000);
+  tween.easing(TWEEN.Easing.Quartic.InOut)
+  tween.onUpdate(function(){
+    group.rotation.x = hue_position.x
+  });
+  tween.start();
+}
+
+
+t = 100;
+setTimeout(draw_white,    t+=1000)
+setTimeout(draw_cyk,      t+=1000)
+setTimeout(draw_bluegrad, t+=1000)
+setTimeout(draw_rotate,   t+=1000)
+setTimeout(draw_cylinder, t+=1000)
+setTimeout(draw_by_hue,   t+=1000)
+
 
 
     </script>
