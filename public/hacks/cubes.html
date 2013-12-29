@@ -1,0 +1,104 @@
+<html>
+  <head>
+    <title>Colour Spaces</title>
+    <style>canvas { width: 100%; height: 100% }</style>
+  </head>
+  <body>
+    <script src="three.js"></script>
+    <script>
+
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+var renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setClearColor(0xdddddd);
+document.body.appendChild( renderer.domElement );
+
+var group = new THREE.Object3D();
+
+
+var geometry = new THREE.CubeGeometry(1,1,1,3,3,3);
+var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x000000, opacity: 0.04} );
+material.transparent = true;
+var cube = new THREE.Mesh( geometry, material );
+group.add( cube );
+
+camera.position.z = 5;
+
+
+
+function ball(color){
+  var r = (color & 0xff0000) >> 16,
+      g = (color & 0x00ff00) >> 8,
+      b = (color & 0x0000ff);
+
+
+  var geometry2 = new THREE.SphereGeometry(.05,10,10)
+  var material = new THREE.MeshBasicMaterial( { wireframe: false, color: color, opacity: 0.2} );
+  var sphere = new THREE.Mesh( geometry2, material );
+  sphere.position.x = (r / 255) - 0.5;
+  sphere.position.y = (g / 255) - 0.5;
+  sphere.position.z = (b / 255) - 0.5;
+  group.add( sphere );
+}
+
+
+ball(0x000000);
+ball(0xffffff);
+
+ball(0x0000ff);
+ball(0x00ff00);
+ball(0xff0000);
+
+ball(0x00ffff);
+ball(0xffff00);
+ball(0xff00ff);
+
+
+function interpolate(color1, color2, num){
+
+  var r1 = (color1 & 0xff0000) >> 16,
+      g1 = (color1 & 0x00ff00) >> 8,
+      b1 = (color1 & 0x0000ff),
+      r2 = (color2 & 0xff0000) >> 16,
+      g2 = (color2 & 0x00ff00) >> 8,
+      b2 = (color2 & 0x0000ff);
+
+  var colours = [], r, g ,b;
+  for(var i = 0; i < num+1; i++){
+    r = (r1 + ((r2 - r1)*(i/num)));
+    g = (g1 + ((g2 - g1)*(i/num)));
+    b = (b1 + ((b2 - b1)*(i/num)));
+    colours.push((r << 16) + (g << 8) + b)
+  }
+  return colours;
+}
+
+
+interpolate(0x2E2380,0x877BD6 ,6).forEach(ball);
+
+
+scene.add(group)
+
+
+group.rotation.x = 0.3;
+group.rotation.y = -0.5;
+
+
+renderer.render(scene, camera);
+
+function render() {
+  requestAnimationFrame(render);
+  renderer.render(scene, camera);
+
+  // group.rotation.x += 0.01;
+  // group.rotation.y += 0.01;
+
+}
+// render();
+
+
+    </script>
+  </body>
+</html>
