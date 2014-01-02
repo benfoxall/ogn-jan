@@ -1,20 +1,45 @@
-<html>
-  <head>
-    <title>Colour Spaces</title>
-    <style>canvas { width: 100%; height: 100% }</style>
-  </head>
-  <body>
-    <script src="three.js"></script>
-    <script src="tween.js"></script>
-    <script>
+(function(document, Reveal){
+
+  // fragment display handlers
+
+  var fragments = [],
+      fragment_fns = [],
+      fragment_back_fns = [];
+
+  Reveal.addEventListener( 'fragmentshown', function( event ) {
+    var fn = fragment_fns[fragments.indexOf(event.fragment)];
+    if(fn) fn(event);
+  })
+
+  Reveal.addEventListener( 'fragmenthidden', function( event ) {
+    var fn = fragment_back_fns[fragments.indexOf(event.fragment)];
+    if(fn) fn(event);
+  })
+
+  function registerFragment(fn, back_fn){
+    var el = document.createElement('div');
+    el.className = 'fragment';
+    fragments.push(el);
+    fragment_fns.push(fn);
+    fragment_back_fns.push(back_fn);
+  }
+
+  // -------------------
+
+
+
+
+
+
+
 
 var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 25, window.innerWidth / window.innerHeight, 0.1, 1000 );
+var camera = new THREE.PerspectiveCamera( 15, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 var renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setClearColor(0xdddddd);
-document.body.appendChild( renderer.domElement );
+// renderer.setSize( window.innerWidth, window.innerHeight );
+// renderer.setClearColor(0xdddddd);
+// document.body.appendChild( renderer.domElement );
 
 var group = new THREE.Object3D();
 
@@ -32,7 +57,7 @@ function ball(color){
 
 
   var geometry2 = new THREE.SphereGeometry(.05,10,10)
-  var material = new THREE.MeshBasicMaterial( { wireframe: true, color: color, opacity: 0.2} );
+  var material = new THREE.MeshBasicMaterial( { wireframe: false, color: color, opacity: 0.2} );
   var sphere = new THREE.Mesh( geometry2, material );
   sphere.position.x = (r / 255) - 0.5;
   sphere.position.y = (g / 255) - 0.5;
@@ -84,12 +109,12 @@ var stop = false, rotateby = 0;
 function render() {
   if(!stop) requestAnimationFrame(render);
   renderer.render(scene, camera);
-  
+
   group.rotation.z += rotateby;
   TWEEN.update();
 
 }
-render();
+// render();
 
 
 var cube;
@@ -172,16 +197,69 @@ function draw_by_hue(){
 
 
 
-t = 100;
-setTimeout(draw_white,    t+=1000)
-setTimeout(draw_cyk,      t+=1000)
-setTimeout(draw_bluegrad, t+=1000)
-setTimeout(draw_rotate,   t+=1000)
-setTimeout(draw_cylinder, t+=1000)
-setTimeout(draw_by_hue,   t+=1000)
+// t = 100;
+// setTimeout(draw_white,    t+=1000)
+// setTimeout(draw_cyk,      t+=1000)
+// setTimeout(draw_bluegrad, t+=1000)
+// setTimeout(draw_rotate,   t+=1000)
+// setTimeout(draw_cylinder, t+=1000)
+// setTimeout(draw_by_hue,   t+=1000)
 
 
 
-    </script>
-  </body>
-</html>
+
+registerFragment(render);
+registerFragment(draw_white);
+registerFragment(draw_cyk);
+registerFragment(draw_bluegrad);
+registerFragment(draw_rotate);
+registerFragment(draw_cylinder);
+registerFragment(draw_by_hue);
+
+registerFragment(function(){
+  stop = true;
+});
+
+
+
+
+
+  // registerFragment(function(){
+  //   console.log("HELLO ONE");
+  //   render();
+  // },function(){
+  //   console.log("REVERT ONE")
+  // });
+  // registerFragment(function(){
+  //   console.log("HELLO TWO")
+  // });
+  // registerFragment(function(){
+  //   console.log("HELLO THREE")
+  // },function(){
+  //   console.log("REVERT THREE")
+  // });
+
+
+
+
+
+  // -------------------
+
+  this.colourspace = function(){
+    var section = document.querySelector('[data-colour-cubes]');
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setClearColor(0xdddddd);
+    section.appendChild( renderer.domElement );
+
+
+    renderer.render(scene, camera);
+
+
+    fragments.forEach(function(fragment){
+      section.appendChild(fragment)
+    });
+
+
+  }
+}).call(this, document, Reveal)

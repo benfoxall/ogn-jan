@@ -38,6 +38,10 @@
 			.reveal section code{
 				padding:1em;
 			}
+
+			canvas{
+				max-width: 100%;
+			}
 		</style>
 
 		<!--[if lt IE 9]>
@@ -69,15 +73,16 @@
 					</section>
 				</section>
 
-				<section>
-					<section>
+				<section data-colour-cubes>
+					
+					<!-- <section>
 						<h1>[RGB cube]</h1>
 						<p>*orange plotted*</p>				
 					</section>
 					<section>
 						<h1>[HSV cube]</h1>
 						<p>*orange plotted*</p>				
-					</section>
+					</section> -->
 				</section>
 
 				<section>
@@ -165,6 +170,9 @@ mybutton.onclick = vRec.calibrated;
 		<script src="js/reveal.min.js"></script>
 		<script src="lib/js/vr.js"></script>
 
+    <script src="hacks/three.js"></script>
+    <script src="hacks/tween.js"></script>
+
 		<script>
 
 			// Full list of configuration options available here:
@@ -183,7 +191,9 @@ mybutton.onclick = vRec.calibrated;
 					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
 					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
 					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+
+					{ src: 'js/colourspace.js', async: true, callback: function() { colourspace() } }
 				]
 			});
 
@@ -411,7 +421,7 @@ mybutton.onclick = vRec.calibrated;
 							threshes.b[1]
 						];
 
-					console.log(mins, maxes);
+					// console.log(mins, maxes);
 				var srcImageData = ctx.getImageData(0,0,rgbCanvas.width,rgbCanvas.height);
 				var pixels = srcImageData.data;
 				for(var i = 0; i < pixels.length; i+=4){
