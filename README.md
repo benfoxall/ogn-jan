@@ -11,3 +11,7 @@ This has a little bit of getUserMedia, so you need to run it through a web serve
     python -m SimpleHTTPServer
 
 which will serve the presentation at http://localhost:8000/public
+
+---
+
+party photo via [@garrettc](http://www.flickr.com/photos/garrettc)
