@@ -121,18 +121,20 @@
 					<section>
 						<h2>have a hack</h2>
 
-	  				<p><a href="https://github.com/whiteoctober/TBC">https://github.com/whiteoctober/TBC</a></p>
+	  				<p><a href="https://github.com/whiteoctober/bauble">https://github.com/whiteoctober/bauble</a></p>
 
 						<pre><code data-trim>
-var vRec = new VideoRecognition({worker:'lib/js/vr-worker.js'})
-vRec.getUserMedia()
+var b = new Bauble({worker:'lib/js/bauble-worker.js'})
+b.getUserMedia()
     .attach('body')
     .on('point', function(x,y){
     	// do something awesome!!
     });
 
 // click #mybutton to calibrate
-mybutton.onclick = vRec.calibrated;
+mybutton.onclick = function(){
+  bauble.setCalibrating(false);
+}
 	  				</code></pre>
 
 	  			</section>
