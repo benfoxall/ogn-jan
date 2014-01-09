@@ -187,7 +187,7 @@ var zoom = (function(){
 				// If an element is set, that takes precedence
 				if( !!options.element ) {
 					// Space around the zoomed in element to leave on screen
-					var padding = 20;
+					var padding = 0;
 
 					options.width = options.element.getBoundingClientRect().width + ( padding * 2 );
 					options.height = options.element.getBoundingClientRect().height + ( padding * 2 );
