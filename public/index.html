@@ -38,6 +38,9 @@
 			.reveal section code{
 				padding:1em;
 			}
+			.balls{
+				color:#888;
+			}
 
 			canvas{
 				max-width: 100%;
@@ -54,7 +57,8 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-					<h1>ping pong</h1>
+					<h2>ping pong balls</h2>
+					<p class="balls">and web browsers</p>
 				</section>
 
 				<section data-background="images/ping-pong.jpg">
@@ -73,7 +77,7 @@
 					</section>
 				</section>
 
-				<section data-colour-cubes>
+				<section data-colour-cubes data-background-color="#dddddd">
 					
 					<!-- <section>
 						<h1>[RGB cube]</h1>
@@ -179,6 +183,7 @@ mybutton.onclick = function(){
 				progress: true,
 				history: true,
 				center: true,
+				margin: 0,
 
 				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
 				transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
