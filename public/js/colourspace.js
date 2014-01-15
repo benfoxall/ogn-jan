@@ -1,7 +1,10 @@
 (function(document, Reveal){
 
+  var w = Reveal.getConfig().width,
+      h = Reveal.getConfig().height;
+
   var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera( 15, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  var camera = new THREE.PerspectiveCamera( 15, w / h, 0.1, 1000 );
 
   var renderer = new THREE.WebGLRenderer({antialias:true});
   // renderer.setSize( window.innerWidth, window.innerHeight );
@@ -77,7 +80,7 @@
     if(!stop) requestAnimationFrame(render);
     renderer.render(scene, camera);
 
-    group.rotation.z += rotateby;
+    group.rotation.y += rotateby;
     TWEEN.update();
 
   }
@@ -85,6 +88,7 @@
 
 
   var cube;
+
   function draw_white(){
     ball(0xffffff);
 
@@ -166,7 +170,11 @@
   this.colourspace = function(){
     var section = document.querySelector('[data-colour-cubes]');
 
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    section.style.padding='0'
+
+
+    renderer.setSize( w, h );
+
     renderer.setClearColor(0xdddddd);
     section.appendChild( renderer.domElement );
 
@@ -175,14 +183,16 @@
     var slide = new DynamicSlide(section);
 
     // start the render loop
-    slide.addEventListener('shown', render);
+    slide.addEventListener('shown', function(){
+      render();
+      draw_white()
+      draw_cyk()
+    });
 
     // halt the render loop
     slide.addEventListener('hidden', function(){ stop = true; })
 
     slide.fragments([
-        draw_white,
-        draw_cyk,
         draw_bluegrad,
         draw_rotate,
         draw_cylinder,
