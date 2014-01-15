@@ -288,6 +288,10 @@ function recognise(data){
   var altx = totalx / countx;
   var alty = totaly / county;
 
+  // if(countx < 30000){
+  //   altx = alty = null;
+  // }
+
 
   // alter by bounds if defined
   var bounds = data.bounds;

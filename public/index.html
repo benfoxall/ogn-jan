@@ -34,6 +34,7 @@
 			.reveal section img{
 				border:none;
 				box-shadow: none;
+				background:none;
 			}
 			.reveal section code{
 				padding:1em;
@@ -110,13 +111,14 @@
 						<div id="gum"></div>
 						<div class="fragment" data-fragment-state="calibrated"></div>
 						<div class="fragment" data-fragment-state="draw"></div>
-						<div class="fragment" data-fragment-state="move"></div>
-						<div class="fragment" data-fragment-state="finish"></div>
+						<div class="fragment" data-fragment-state="transform"></div>
+						<div class="fragment" data-fragment-state="inverse_translate"></div>
+						<div class="fragment" data-fragment-state="translate"></div>
 					</section>
 				</section>
 
 				<section>
-					<section data-background="#222"><img src="images/pictionary-logo.png" /></section>
+					<section data-background="images/pictionary-logo-bg.png"><img src="images/pictionary-logo.png" /></section>
 					<section data-background="images/pictionary-env.jpg"></section>
 					<section data-background="images/pictionary.png"></section>
 				</section>
@@ -551,6 +553,10 @@ Reveal.addEventListener( 'fragmentshown', function( event ) {
 				recog.pctx.fillStyle = 'rgba(255,255,255,0.7)';
 				recog.pctx.fillRect(0,0,recog.canvas.width,recog.canvas.height);
 
+				recog.canvas.style.webkitTransition = ''
+
+				// -webkit-transition: -webkit-transform 1s;
+
 				drawfn = function(current, prior){
 					with(recog.pctx){
 
@@ -570,7 +576,7 @@ Reveal.addEventListener( 'fragmentshown', function( event ) {
 				}
 			}
 
-			fragmentStates.move = function(){
+			fragmentStates.transform = function(){
 				recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
 
 				
@@ -588,11 +594,75 @@ Reveal.addEventListener( 'fragmentshown', function( event ) {
 				// recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
 			}
 
+			fragmentStates.inverse_translate = function(){
+
+				var w = recog.canvas.width, h = recog.canvas.height;
+
+				
+				drawfn = function(current, prior){
+					// scale the current down to -90 -> +90
+
+					var x = current[0] - (w/2);
+					var y = current[1] - (h/2);
+
+					if(x && y){
+						// 
+						recog.canvas.style.webkitTransform = 'scale(5) translate(' + x*-1 + 'px, ' + y*-1 + 'px) ';							
+					}
+				}
+			}
+
+			fragmentStates.translate = function(){
+				var w = recog.canvas.width, h = recog.canvas.height;
+
+				var t;
+
+				drawfn = function(current, prior){
+					// console.log.apply(console,current)
+					// scale the current down to -90 -> +90
+
+					var x = current[0] - (w/2);
+					var y = current[1] - (h/2);
+
+					if(x && y){
+						recog.canvas.style.webkitTransform = 'scale(.75) translate(' + x + 'px, ' + y + 'px)';							
+					}
+
+					if(current[0]){
+						if(current[0] > (w/5)){
+							clearTimeout(t); t = null;
+						} else {
+							if(!t){
+								t = setTimeout(function(){
+									console.log("GO NEXT!!!!!!!");
+
+									recog.canvas.style.webkitTransition = '-webkit-transform 1s';
+									recog.canvas.style.webkitTransform = 'translate(-1500px, ' + y + 'px) scale(.03) ';	
+
+									setTimeout(function(){
+										recog.destroy();
+										Reveal.next()
+									},1000)
+									// no draw function
+									drawfn = function(){};
+								},1000)
+							}
+						}
+					}
+				}
+				
+			}
+
 			fragmentStates.finish = function(){
-				recog.destroy();
+				// recog.destroy();
 			}
 
 
+
+
+			// <div class="fragment" data-fragment-state="transform"></div>
+			// <div class="fragment" data-fragment-state="inverse_translate"></div>
+			// <div class="fragment" data-fragment-state="translate"></div>
 
 			
 
