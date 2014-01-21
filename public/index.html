@@ -125,7 +125,7 @@
 
 				<section>
 					<section>
-						<h2>have a hack</h2>
+						<h2>Bauble</h2>
 
 	  				<p><a href="https://github.com/whiteoctober/bauble">https://github.com/whiteoctober/bauble</a></p>
 
@@ -541,11 +541,24 @@ Reveal.addEventListener( 'fragmentshown', function( event ) {
 
 			});
 
+			// celled when the uncalibrated fragment is shown
+			// fragmentStates.uncalibrated = function(){
+			// 	recog.notcalibrated();
+			// 	recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
+			// }
+
 			// celled when the calibrated fragment is shown
 			fragmentStates.calibrated = function(){
 				recog.calibrated();
 				recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);
 			}
+
+			// also toggle calibration on 'c'
+			document.addEventListener('keypress', function(e){
+				if(e.which == 99)
+					recog._process_action = recog._process_action == 'calibrate' ? 'recognise' : 'calibrate';
+
+			}, false)
 
 			fragmentStates.draw = function(){
 				recog.pctx.clearRect(0,0,recog.canvas.width,recog.canvas.height);

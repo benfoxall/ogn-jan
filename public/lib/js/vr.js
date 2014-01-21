@@ -265,6 +265,12 @@
     return this;
   }
 
+  VideoRecognition.prototype.notcalibrated = function(){
+    this._process_action = 'calibrate';
+    console.log("NOTTT")
+    return this;
+  }
+
   VideoRecognition.prototype.destroy = function(){
     this._process_action = 'finish';
     this.mediaStream.stop();
