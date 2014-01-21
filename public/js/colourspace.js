@@ -4,12 +4,15 @@
       h = Reveal.getConfig().height;
 
   var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera( 15, w / h, 0.1, 1000 );
+  var camera = new THREE.PerspectiveCamera( 15, w / h, 0.1, 30 );
+  // var camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 1, 1000 );
 
   var renderer = new THREE.WebGLRenderer({antialias:true});
   // renderer.setSize( window.innerWidth, window.innerHeight );
   // renderer.setClearColor(0xdddddd);
   // document.body.appendChild( renderer.domElement );
+
+
 
   var group = new THREE.Object3D();
 
@@ -72,15 +75,40 @@
   group.rotation.y = -0.5;
 
 
+  var material = new THREE.LineBasicMaterial({
+      color: 0x555555,
+      linewidth: 3
+  });
+
+  var geometry = new THREE.Geometry();
+
+  geometry.vertices.push(new THREE.Vector3(-.5,-.5,-.5));
+  geometry.vertices.push(new THREE.Vector3(-.5,1,-.5));
+  geometry.vertices.push(new THREE.Vector3(-.5,-.5,-.5));
+  geometry.vertices.push(new THREE.Vector3(-.5,-.5,1));
+  geometry.vertices.push(new THREE.Vector3(-.5,-.5,-.5));
+  geometry.vertices.push(new THREE.Vector3(1,-.5,-.5));
+  geometry.vertices.push(new THREE.Vector3(-.5,-.5,-.5));
+
+
+
+   var line = new THREE.Line(geometry, material);
+   scene.add(line);
+
+
+  line.rotation.x = 0.3;
+  line.rotation.y = -0.5;
+
   renderer.render(scene, camera);
 
-  var stop = false, rotateby = 0;
+  var stop = false, rotateby = 0.003;
 
   function render() {
     if(!stop) requestAnimationFrame(render);
     renderer.render(scene, camera);
 
     group.rotation.y += rotateby;
+    line.rotation.y = group.rotation.y
     TWEEN.update();
 
   }
@@ -93,7 +121,7 @@
     ball(0xffffff);
 
     var geometry = new THREE.CubeGeometry(1,1,1,3,3,3);
-    var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x000000, opacity: 0.04} );
+    var material = new THREE.MeshBasicMaterial( { wireframe: false, color: 0x000000, opacity: 0.1} );
     material.transparent = true;
     cube = new THREE.Mesh( geometry, material );
     group.add( cube );
@@ -111,24 +139,13 @@
     interpolate(0x2E2380,0x877BD6 ,6).forEach(ball);
   }
 
-  var position = { x: group.rotation.x, y: group.rotation.y };
-  var target = { x: -Math.PI/4 + 0.2, y: (-Math.PI/4) };
-  var tween = new TWEEN.Tween(position).to(target, 1000);
-  tween.easing(TWEEN.Easing.Quartic.InOut)
-  tween.onUpdate(function(){
-    group.rotation.x = position.x
-    group.rotation.y = position.y
-  });
 
-  function draw_rotate(){
-    tween.start()
-  }
 
   function draw_cylinder(){
 
     var hsl = new THREE.CylinderGeometry(Math.sqrt(3)/2, Math.sqrt(3)/2, Math.sqrt(3), 40, 3, false);
 
-    var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x000000, opacity: 0.04} );
+    var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x000000, opacity: 0.1} );
     material.transparent = true;
     var cylinder = new THREE.Mesh( hsl, material );
 
@@ -149,6 +166,17 @@
 
 
   function draw_rotate(){
+    rotateby = 0;
+
+    var position = { x: group.rotation.x % (Math.PI*2), y: group.rotation.y % (Math.PI*2) };
+    var target = { x: -Math.PI/4 + 0.2, y: (-Math.PI/4) };
+    var tween = new TWEEN.Tween(position).to(target, 1000);
+    tween.easing(TWEEN.Easing.Quartic.InOut)
+    tween.onUpdate(function(){
+      line.rotation.x = group.rotation.x = position.x
+      line.rotation.y = group.rotation.y = position.y
+
+    });
     tween.start()
   }
 
@@ -159,7 +187,7 @@
     var tween = new TWEEN.Tween(hue_position).to(hue_target, 1000);
     tween.easing(TWEEN.Easing.Quartic.InOut)
     tween.onUpdate(function(){
-      group.rotation.x = hue_position.x
+      line.rotation.x = group.rotation.x = hue_position.x
     });
     tween.start();
   }
