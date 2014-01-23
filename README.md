@@ -6,7 +6,7 @@ It covers an approach for recognising objects in images that we used for the [Wh
 
 ### Running
 
-See this online at http://benjaminbenben.com/ping-pong/public - press 'n' &amp; 'p' to go through the presentation (some slides are vertical, so won't be shown with &rarr; &larr;).
+See this online at http://benjaminbenben.com/ping-pong/public - press 'n' &amp; 'p' to go through the presentation (some slides are vertical, so won't be shown with &larr; &rarr;).
 
 To run this locally you need to run it through a web server (as there is a little bit of getUserMedia).  An easy way to do this is:
 
