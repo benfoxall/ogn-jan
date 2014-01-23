@@ -6,7 +6,9 @@ It covers an approach for recognising objects in images that we used for the [Wh
 
 ### Running
 
-This has a little bit of getUserMedia, so you need to run it through a web server.  An easy way to do this is:
+See this online at http://benjaminbenben.com/ping-pong/public - press 'n' &amp; 'p' to go through the presentation (some slides are vertical, so won't be shown with &rarr; &larr;).
+
+To run this locally you need to run it through a web server (as there is a little bit of getUserMedia).  An easy way to do this is:
 
     python -m SimpleHTTPServer
 
